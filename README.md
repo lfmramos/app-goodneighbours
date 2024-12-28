@@ -1,3 +1,5 @@
+# 💻 Tech Stack: ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=plastic&logo=openjdk&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-323330?style=plastic&logo=javascript&logoColor=F7DF1E) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=plastic&logo=typescript&logoColor=white) ![HTML](https://img.shields.io/badge/HTML-E34F26?style=plastic&logo=html5&logoColor=white) ![CSS](https://img.shields.io/badge/CSS-1572B6?style=plastic&logo=css3&logoColor=white) ![MongoDB Atlas](https://img.shields.io/badge/MongoDB_Atlas-47A248?style=plastic&logo=mongodb&logoColor=white) ![React](https://img.shields.io/badge/React-20232A?style=plastic&logo=react&logoColor=61DAFB) ![AWS EC2](https://img.shields.io/badge/AWS_EC2-FF9900?style=plastic&logo=amazonaws&logoColor=white)
+
 ![Front page of the "Mão Amiga" platform](/maoamiga.png)
 
 ## About the application
