@@ -1,3 +1,5 @@
+![Front page of the "Mão Amiga" platform](/maoamiga.png)
+
 ## About the application
 Mão Amiga is a platform created to bring elderly people together with volunteers ready to help with small everyday tasks, such as shopping, making small repairs around the house or even offering company for a cup of tea or a walk.
 We believe in the power of community and the importance of caring for those who have contributed so much to the world we know today.
