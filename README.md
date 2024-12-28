@@ -8,7 +8,7 @@ More than providing help, we want to promote solidarity, mutual support and, esp
 ## Our Vision
 
 We want to build an intergenerational support network where every senior can find the help they need quickly, safely and in affordable conditions.
-Our vision is to eliminate the isolation and difficulties faced by the elderly in everyday tasks, while cultivating values of empathy and collaboration in people with time on their hands.
+Our vision is to eliminate the isolation and difficulties faced by the elderly in everyday tasks while cultivating values of empathy and collaboration in people with time on their hands.
 Our ultimate goal is for our seniors to feel supported and respected.
 
 ## How it works
@@ -16,7 +16,7 @@ Our ultimate goal is for our seniors to feel supported and respected.
 1. Registration: Volunteers register for free on the platform, creating their profile with the information requested;
 2. Profile: After registering, a card will be available with only the information needed by those who are going to ask for help, such as name, location and tasks the volunteer proposes to do;
 3. Request for Help: Elderly people and institutions can submit requests for help according to the profiles displayed, selecting according to the tasks of interest and location;
-4. Connection with Volunteers and confirmation: After the elderly person or institution selects the profile of interest, the volunteer contacts the elderly person directly to confirm the details and arrange the best date and time to carry out the task.
+4. Connection with Volunteers and Confirmation: After the elderly person or institution selects the profile of interest, the volunteer contacts the elderly person directly to confirm the details and arrange the best date and time to carry out the task.
 
 ## Why We Started
 
