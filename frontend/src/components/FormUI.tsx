@@ -15,8 +15,8 @@ const FormDataSchema = z.object({
   Apelido: z.string().nonempty("Por favor, entre com um nome válido"),
   NIF: z.string().nonempty("Por favor, entre com um NIF válido"),
   CC: z.string().nonempty("Por favor, entre com um número válido"),
-  "Data de nascimento": z.string().nonempty("Entre com uma data válida"),
-  email: z.string().email("Please enter a valid email"),
+  "Data de nascimento": z.string().nonempty("Por favor, entre com uma data válida"),
+  email: z.string().email("Por favor, entre com um email válido"),
   Telefone: z.string().nonempty("Por favor, entre com um número válido"),
   Morada: z.string().nonempty("Por favor, entre com uma morada válida"),
   Cidade: z.string().nonempty("Por favor, entre com uma cidade válida"),
@@ -63,186 +63,173 @@ const transformDateFormat = (date: string) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function FormUI() {
-  const [action, setAction] = useState<string | null>(null); // Local state for action feedback
-  const router = useRouter(); // Correct usage of useRouter hook from next/router
+const FormUI = () => {
+  const [formData, setFormData] = useState({
+    "Primeiro nome": "",
+    Apelido: "",
+    NIF: "",
+    CC: "",
+    "Data de nascimento": "",
+    email: "",
+    Telefone: "",
+    Morada: "",
+    Cidade: "",
+    Freguesia: "",
+    "Código postal": "",
+    username: "",
+  });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Capture form data
-    const data = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
-
-    // Validate the data using Zod schema
-    const validation = FormDataSchema.safeParse(data);
-    if (!validation.success) {
-      console.error("Validation failed:", validation.error.errors);
-      return;
-    }
-
-    // Transform the data keys to English
-    const transformedData = transformDataKeys(validation.data);
-
-    // Transform the date format (if necessary)
-    if (transformedData.birthDate) {
-      transformedData.birthDate = transformDateFormat(transformedData.birthDate);
-    }
-
     try {
-      const response = await axios.post(
-        "http://ec2-52-0-11-92.compute-1.amazonaws.com/api/volunteers", // Replace with your actual API endpoint
-        transformedData
-      );
-      console.log("Submission successful:", response.data); // Log successful response
-      toast.success('Registration successful! Redirecting to the home page...');
-      setTimeout(() => {
-        router.push("/"); // Navigate to the initial page after showing the toast
-      }, 3000); // Adjust the delay as needed
+      FormDataSchema.parse(formData); // Validate form data
+      await axios.post("/api/submit", formData); // Submit form data
+      toast.success("Formulário enviado com sucesso!");
     } catch (error) {
-      console.error("Error submitting form:", error);
-      setAction(`error ${(error as Error).message}`);
-      toast.error('Error submitting form. Please try again.');
+      if (error instanceof z.ZodError) {
+        toast.error("Por favor, corrija os campos destacados.");
+      } else {
+        toast.error("Falha ao enviar o formulário. Por favor, verifique suas entradas.");
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      {/* Container do formulário */}
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg mx-4">
+      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg md:max-w-xl lg:max-w-2xl mx-4">
         <h1 className="text-2xl font-bold text-center text-gray-700 mb-6">Formulário</h1>
         <Form
-          className="flex flex-col gap-4"
-          validationBehavior="native"
-          onReset={() => setAction("reset")}
+          className="flex flex-col items-center gap-4"
+          aria-label="Formulário de inscrição"
           onSubmit={handleSubmit}
         >
-          {/* Form fields */}
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com um nome válido"
-            label="Primeiro nome"
-            labelPlacement="outside"
-            name="Primeiro nome"
-            placeholder="Entre com o primeiro nome"
-            type="text"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com um nome válido"
-            label="Apelido"
-            labelPlacement="outside"
-            name="Apelido"
-            placeholder="Entre com o apelido"
-            type="text"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com um NIF válido"
-            label="NIF"
-            labelPlacement="outside"
-            name="NIF"
-            placeholder="Digite o NIF"
-            type="number"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com um número válido"
-            label="CC"
-            labelPlacement="outside"
-            name="CC"
-            placeholder="Digite o Número do Cartão Cidadão"
-            type="number"
-          />
-          <Input
-            isRequired
-            errorMessage="Entre com uma data válida"
-            label="Data de nascimento"
-            labelPlacement="outside"
-            name="Data de nascimento"
-            placeholder="Entre com a data de nascimento"
-            type="text" // Use text input to allow dd-mm-yyyy format
-          />
-          <Input
-            isRequired
-            errorMessage="Please enter a valid email"
-            label="Email"
-            labelPlacement="outside"
-            name="email"
-            placeholder="Entre com seu email"
-            type="email"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com um número válido"
-            label="Telefone"
-            labelPlacement="outside"
-            name="Telefone"
-            placeholder="Digite seu telefone"
-            type="number"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com uma morada válida"
-            label="Morada"
-            labelPlacement="outside"
-            name="Morada"
-            placeholder="Digite sua morada"
-            type="text"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com uma cidade válida"
-            label="Cidade"
-            labelPlacement="outside"
-            name="Cidade"
-            placeholder="Digite sua cidade"
-            type="text"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com uma freguesia válida"
-            label="Freguesia"
-            labelPlacement="outside"
-            name="Freguesia"
-            placeholder="Digite sua freguesia"
-            type="text"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com um código postal válido"
-            label="Código postal"
-            labelPlacement="outside"
-            name="Código postal"
-            placeholder="Digite o código postal"
-            type="number"
-          />
-          <Input
-            isRequired
-            errorMessage="Por favor, entre com um username válido"
-            label="Username"
-            labelPlacement="outside"
-            name="username"
-            placeholder="Digite seu username"
-            type="text"
-          />
-
-          {/* Buttons */}
-          <div className="flex gap-4 justify-center mt-4">
-            <Button color="secondary" type="submit">
-              Enviar
-            </Button>
-            <Button color="secondary" type="reset" variant="flat">
-              Limpar campos
-            </Button>
+          <div className="flex gap-4 w-full">
+            <Input
+              isRequired
+              label="Primeiro nome"
+              name="Primeiro nome"
+              placeholder=" "
+              aria-label="Primeiro nome"
+              value={formData["Primeiro nome"]}
+              onChange={(e) => setFormData({ ...formData, "Primeiro nome": e.target.value })}
+              className="flex-1"
+            />
+            <Input
+              isRequired
+              label="Apelido"
+              name="Apelido"
+              placeholder=" "
+              aria-label="Apelido"
+              value={formData.Apelido}
+              onChange={(e) => setFormData({ ...formData, Apelido: e.target.value })}
+              className="flex-1"
+            />
+            <Input
+              isRequired
+              label="Data de nascimento"
+              name="Data de nascimento"
+              placeholder="dd/mm/yyyy"
+              aria-label="Data de nascimento"
+              value={formData["Data de nascimento"]}
+              onChange={(e) => setFormData({ ...formData, "Data de nascimento": e.target.value })}
+              className="flex-1"
+            />
           </div>
-          {/* Feedback de ação */}
-          {action && (
-            <div className="text-sm text-gray-500 mt-4 text-center">
-              Ação: <code>{action}</code>
-            </div>
-          )}
+          <div className="flex gap-4 w-full mt-4">
+            <Input
+              isRequired
+              label="Telefone"
+              name="Telefone"
+              placeholder="(+xxx) xxx xxx xxx"
+              aria-label="Telefone"
+              value={formData.Telefone}
+              onChange={(e) => setFormData({ ...formData, Telefone: e.target.value })}
+              className="flex-1"
+            />
+            <Input
+              isRequired
+              label="Email"
+              name="Email"
+              placeholder=" "
+              aria-label="Email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="flex-1"
+            />
+          </div>
+          <div className="flex gap-4 w-full mt-4">
+            <Input
+              isRequired
+              label="Cartão de Cidadão"
+              name="Cartão de Cidadão"
+              placeholder=" "
+              aria-label="CC"
+              value={formData.CC}
+              onChange={(e) => setFormData({ ...formData, CC: e.target.value })}
+              className="flex-1"
+            />
+            <Input
+              isRequired
+              label="NIF"
+              name="NIF"
+              placeholder=" "
+              aria-label="NIF"
+              value={formData.NIF}
+              onChange={(e) => setFormData({ ...formData, NIF: e.target.value })}
+              className="flex-1"
+            />
+          </div>
+          <div className="flex gap-4 w-full mt-4">
+            <Input
+              isRequired
+              label="Morada"
+              name="Morada"
+              placeholder=" "
+              aria-label="Morada"
+              value={formData.Morada}
+              onChange={(e) => setFormData({ ...formData, Morada: e.target.value })}
+              className="flex-1"
+            />
+            <Input
+              isRequired
+              label="Freguesia"
+              name="Freguesia"
+              placeholder=" "
+              aria-label="Freguesia"
+              value={formData.Freguesia}
+              onChange={(e) => setFormData({ ...formData, Freguesia: e.target.value })}
+              className="flex-1"
+            />
+          </div>
+          <div className="flex gap-4 w-full mt-4">
+            <Input
+              isRequired
+              label="Cidade"
+              name="Cidade"
+              placeholder=" "
+              aria-label="Cidade"
+              value={formData.Cidade}
+              onChange={(e) => setFormData({ ...formData, Cidade: e.target.value })}
+              className="flex-1"
+            />
+            <Input
+              isRequired
+              label="Código postal"
+              name="Código postal"
+              placeholder="xxxx-xxx"
+              aria-label="Código postal"
+              value={formData["Código postal"]}
+              onChange={(e) => setFormData({ ...formData, "Código postal": e.target.value })}
+              className="flex-1"
+            />
+          </div>
+          <Button color="secondary" type="submit" className="mt-4">
+            Enviar
+          </Button>
         </Form>
       </div>
     </div>
   );
-}
+};
+
+export default FormUI;
