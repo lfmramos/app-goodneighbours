@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Form } from "@nextui-org/form";
 import { Input } from "@nextui-org/input";
 import { Button } from "@nextui-org/button";
@@ -23,6 +23,7 @@ const FormDataSchema = z.object({
   Freguesia: z.string().nonempty("Por favor, entre com uma freguesia válida"),
   "Código postal": z.string().nonempty("Por favor, entre com um código postal válido"),
   username: z.string().nonempty("Por favor, entre com um username válido"),
+  selfie: z.string().nonempty("Por favor, tire uma selfie"),
 });
 
 // Define the type for the field mapping
@@ -44,6 +45,7 @@ const fieldMapping: FieldMapping = {
   Freguesia: "neighbourhood",
   "Código postal": "zipcode",
   username: "username",
+  selfie: "selfie",
 };
 
 // Function to transform form data keys from Portuguese to English
@@ -77,7 +79,41 @@ const FormUI = () => {
     Freguesia: "",
     "Código postal": "",
     username: "",
+    selfie: "",
   });
+
+  const [cameraOn, setCameraOn] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  const handleButtonClick = () => {
+    if (!cameraOn) {
+      // Start the camera
+      const video = videoRef.current;
+      if (video) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then((stream) => {
+            video.srcObject = stream;
+            video.style.display = 'block';
+            setCameraOn(true);
+          })
+          .catch((err) => {
+            console.error("Error accessing camera: ", err);
+          });
+      }
+    } else {
+      // Capture the photo
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/png");
+      setFormData({ ...formData, selfie: dataUrl });
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.style.display = 'none';
+      setCameraOn(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -223,7 +259,14 @@ const FormUI = () => {
               className="flex-1"
             />
           </div>
-          <Button color="secondary" type="submit" className="mt-4">
+          <div className="flex flex-col items-center mt-2">
+            <video ref={videoRef} width="320" height="240" style={{ display: 'none' }} autoPlay />
+            <canvas ref={canvasRef} width="320" height="240" style={{ display: 'none' }} />
+            <Button color="secondary" onClick={handleButtonClick} className="mt-2">
+              {cameraOn ? "Capturar Foto" : "Tire uma foto"}
+            </Button>
+          </div>
+          <Button color="secondary" type="submit" className="mt-2">
             Enviar
           </Button>
         </Form>
