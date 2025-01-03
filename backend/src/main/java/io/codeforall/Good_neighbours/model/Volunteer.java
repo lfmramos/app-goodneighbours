@@ -12,7 +12,7 @@ public class Volunteer {
     private String id;
     private String firstName;
     private String lastName;
-    private String birthday;
+    private Date birthday;
     private String email;
     private String phone;
     private String address;
@@ -50,11 +50,11 @@ public class Volunteer {
         this.lastName = lastName;
     }
 
-    public String getBirthday() {
+    public Date getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(String birthday) {
+    public void setBirthday(Date birthday) {
         this.birthday = birthday;
     }
 

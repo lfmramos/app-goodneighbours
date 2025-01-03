@@ -8,267 +8,139 @@ import axios from "axios";
 import { z } from "zod";
 import { useRouter } from "next/navigation"; // Correct import for Next.js router
 import { toast } from 'sonner'; // Import toast from sonner
+import './FormUI.css'; // Import the CSS file
 
 // Define the Zod schema for the form data
 const FormDataSchema = z.object({
-  "Primeiro nome": z.string().nonempty("Por favor, entre com um nome válido"),
-  Apelido: z.string().nonempty("Por favor, entre com um nome válido"),
+  firstName: z.string().nonempty("Por favor, entre com um nome válido"),
+  lastName: z.string().nonempty("Por favor, entre com um nome válido"),
   NIF: z.string().nonempty("Por favor, entre com um NIF válido"),
   CC: z.string().nonempty("Por favor, entre com um número válido"),
-  "Data de nascimento": z.string().nonempty("Por favor, entre com uma data válida"),
+  birthday: z.string().nonempty("Por favor, entre com uma data válida"),
   email: z.string().email("Por favor, entre com um email válido"),
-  Telefone: z.string().nonempty("Por favor, entre com um número válido"),
-  Morada: z.string().nonempty("Por favor, entre com uma morada válida"),
-  Cidade: z.string().nonempty("Por favor, entre com uma cidade válida"),
-  Freguesia: z.string().nonempty("Por favor, entre com uma freguesia válida"),
-  "Código postal": z.string().nonempty("Por favor, entre com um código postal válido"),
-  username: z.string().nonempty("Por favor, entre com um username válido"),
-  selfie: z.string().nonempty("Por favor, tire uma selfie"),
+  phone: z.string().nonempty("Por favor, entre com um número válido"),
+  address: z.string().nonempty("Por favor, entre com uma morada válida"),
+  city: z.string().nonempty("Por favor, entre com uma cidade válida"),
+  neighbourhood: z.string().nonempty("Por favor, entre com uma freguesia válida"),
+  zipcode: z.string().nonempty("Por favor, entre com um código postal válido"),
+  image: z.string().nonempty("Por favor, tire uma selfie"),
 });
 
-// Define the type for the field mapping
-type FieldMapping = {
-  [key: string]: string;
-};
-
-// Mapping object to translate Portuguese field names to English
-const fieldMapping: FieldMapping = {
-  "Primeiro nome": "firstName",
-  Apelido: "lastName",
-  NIF: "nif",
-  CC: "cc",
-  "Data de nascimento": "birthDate",
-  email: "email",
-  Telefone: "phone",
-  Morada: "address",
-  Cidade: "city",
-  Freguesia: "neighbourhood",
-  "Código postal": "zipcode",
-  username: "username",
-  selfie: "selfie",
-};
-
-// Function to transform form data keys from Portuguese to English
-const transformDataKeys = (data: Record<string, string>) => {
-  const transformedData: Record<string, string> = {};
-  for (const key in data) {
-    if (fieldMapping[key]) {
-      transformedData[fieldMapping[key]] = data[key];
-    }
-  }
-  return transformedData;
-};
-
-// Function to transform date format from dd-mm-yyyy to yyyy-mm-dd
-const transformDateFormat = (date: string) => {
-  const [day, month, year] = date.split("-");
-  return `${year}-${month}-${day}`;
-};
-
-const FormUI = () => {
-  const [formData, setFormData] = useState({
-    "Primeiro nome": "",
-    Apelido: "",
-    NIF: "",
-    CC: "",
-    "Data de nascimento": "",
-    email: "",
-    Telefone: "",
-    Morada: "",
-    Cidade: "",
-    Freguesia: "",
-    "Código postal": "",
-    username: "",
-    selfie: "",
-  });
-
+const FormUI: React.FC = () => {
+  const [formData, setFormData] = useState({});
+  const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraOn, setCameraOn] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleButtonClick = () => {
-    if (!cameraOn) {
-      // Start the camera
-      const video = videoRef.current;
-      if (video) {
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then((stream) => {
-            video.srcObject = stream;
-            video.style.display = 'block';
-            setCameraOn(true);
-          })
-          .catch((err) => {
-            console.error("Error accessing camera: ", err);
-          });
-      }
-    } else {
-      // Capture the photo
+    if (cameraOn) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/png");
-      setFormData({ ...formData, selfie: dataUrl });
-      video.srcObject.getTracks().forEach(track => track.stop());
-      video.style.display = 'none';
+      if (video && canvas) {
+        const context = canvas.getContext("2d");
+        if (context) {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = canvas.toDataURL("image/png");
+          setFormData({
+            ...formData,
+            image: imageData,
+          });
+        }
+      }
       setCameraOn(false);
+    } else {
+      setCameraOn(true);
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      });
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
-      FormDataSchema.parse(formData); // Validate form data
-      await axios.post("/api/submit", formData); // Submit form data
-      toast.success("Formulário enviado com sucesso!");
+      // Convert birthday to Date object
+      const updatedFormData = {
+        ...formData,
+        birthday: new Date(formData.birthday),
+      };
+
+      // Log form data before validation
+      console.log("Form Data:", updatedFormData);
+
+      // Validate form data
+      FormDataSchema.parse(updatedFormData);
+
+      // Send data to the backend API
+      await axios.post("/api/volunteers", updatedFormData);
+
+      toast.success("Dados enviados com sucesso!");
+      router.push("/success"); // Redirect to success page
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast.error("Por favor, corrija os campos destacados.");
+        // Log Zod validation errors in a readable format
+        console.error("Validation Errors:", error.errors);
+        error.errors.forEach((err) => {
+          console.error(`Field: ${err.path.join('.')}, Issue: ${err.message}`);
+        });
+        toast.error("Erro ao enviar os dados. Por favor, verifique os campos e tente novamente.");
       } else {
-        toast.error("Falha ao enviar o formulário. Por favor, verifique suas entradas.");
+        toast.error("Erro ao enviar os dados. Por favor, tente novamente.");
+        console.error(error);
       }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg md:max-w-xl lg:max-w-2xl mx-4">
-        <h1 className="text-2xl font-bold text-center text-gray-700 mb-6">Formulário</h1>
-        <Form
-          className="flex flex-col items-center gap-4"
-          aria-label="Formulário de inscrição"
-          onSubmit={handleSubmit}
-        >
-          <div className="flex gap-4 w-full">
-            <Input
-              isRequired
-              label="Primeiro nome"
-              name="Primeiro nome"
-              placeholder=" "
-              aria-label="Primeiro nome"
-              value={formData["Primeiro nome"]}
-              onChange={(e) => setFormData({ ...formData, "Primeiro nome": e.target.value })}
-              className="flex-1"
-            />
-            <Input
-              isRequired
-              label="Apelido"
-              name="Apelido"
-              placeholder=" "
-              aria-label="Apelido"
-              value={formData.Apelido}
-              onChange={(e) => setFormData({ ...formData, Apelido: e.target.value })}
-              className="flex-1"
-            />
-            <Input
-              isRequired
-              label="Data de nascimento"
-              name="Data de nascimento"
-              placeholder="dd/mm/yyyy"
-              aria-label="Data de nascimento"
-              value={formData["Data de nascimento"]}
-              onChange={(e) => setFormData({ ...formData, "Data de nascimento": e.target.value })}
-              className="flex-1"
-            />
+    <div className="page-container">
+      <div className="form-container">
+        <h1 className="form-title">Formulário</h1>
+        <Form onSubmit={handleSubmit}>
+          <div className="form-row">
+            <Input name="firstName" label="Primeiro Nome" required onChange={handleChange} className="half-width" />
+            <Input name="lastName" label="Apelido" required onChange={handleChange} className="half-width" />
           </div>
-          <div className="flex gap-4 w-full mt-4">
-            <Input
-              isRequired
-              label="Telefone"
-              name="Telefone"
-              placeholder="(+xxx) xxx xxx xxx"
-              aria-label="Telefone"
-              value={formData.Telefone}
-              onChange={(e) => setFormData({ ...formData, Telefone: e.target.value })}
-              className="flex-1"
-            />
-            <Input
-              isRequired
-              label="Email"
-              name="Email"
-              placeholder=" "
-              aria-label="Email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="flex-1"
-            />
+          <div className="form-row">
+            <Input name="NIF" label="NIF" required onChange={handleChange} className="third-width" />
+            <Input name="CC" label="CC" required onChange={handleChange} className="third-width" />
+            <Input name="birthday" label="Data de Nascimento" required onChange={handleChange} className="third-width" />
           </div>
-          <div className="flex gap-4 w-full mt-4">
-            <Input
-              isRequired
-              label="Cartão de Cidadão"
-              name="Cartão de Cidadão"
-              placeholder=" "
-              aria-label="CC"
-              value={formData.CC}
-              onChange={(e) => setFormData({ ...formData, CC: e.target.value })}
-              className="flex-1"
-            />
-            <Input
-              isRequired
-              label="NIF"
-              name="NIF"
-              placeholder=" "
-              aria-label="NIF"
-              value={formData.NIF}
-              onChange={(e) => setFormData({ ...formData, NIF: e.target.value })}
-              className="flex-1"
-            />
+          <div className="form-row">
+            <Input name="email" label="Email" required onChange={handleChange} className="half-width" />
+            <Input name="phone" label="Telefone" required onChange={handleChange} className="half-width" />
           </div>
-          <div className="flex gap-4 w-full mt-4">
-            <Input
-              isRequired
-              label="Morada"
-              name="Morada"
-              placeholder=" "
-              aria-label="Morada"
-              value={formData.Morada}
-              onChange={(e) => setFormData({ ...formData, Morada: e.target.value })}
-              className="flex-1"
-            />
-            <Input
-              isRequired
-              label="Freguesia"
-              name="Freguesia"
-              placeholder=" "
-              aria-label="Freguesia"
-              value={formData.Freguesia}
-              onChange={(e) => setFormData({ ...formData, Freguesia: e.target.value })}
-              className="flex-1"
-            />
+          <div className="form-row">
+            <Input name="address" label="Morada" required onChange={handleChange} className="half-width" />
+            <Input name="neighbourhood" label="Freguesia" required onChange={handleChange} className="half-width" />
           </div>
-          <div className="flex gap-4 w-full mt-4">
-            <Input
-              isRequired
-              label="Cidade"
-              name="Cidade"
-              placeholder=" "
-              aria-label="Cidade"
-              value={formData.Cidade}
-              onChange={(e) => setFormData({ ...formData, Cidade: e.target.value })}
-              className="flex-1"
-            />
-            <Input
-              isRequired
-              label="Código postal"
-              name="Código postal"
-              placeholder="xxxx-xxx"
-              aria-label="Código postal"
-              value={formData["Código postal"]}
-              onChange={(e) => setFormData({ ...formData, "Código postal": e.target.value })}
-              className="flex-1"
-            />
+          <div className="form-row">
+            <Input name="city" label="Cidade" required onChange={handleChange} className="half-width" />
+            <Input name="zipcode" label="Código Postal" required onChange={handleChange} className="half-width" />
           </div>
-          <div className="flex flex-col items-center mt-2">
-            <video ref={videoRef} width="320" height="240" style={{ display: 'none' }} autoPlay />
-            <canvas ref={canvasRef} width="320" height="240" style={{ display: 'none' }} />
-            <Button color="secondary" onClick={handleButtonClick} className="mt-2">
+          <div className="form-row">
+            <Button color="secondary" onPress={handleButtonClick} className="mt-2 half-width">
               {cameraOn ? "Capturar Foto" : "Tire uma foto"}
             </Button>
+            <Button color="secondary" type="submit" className="mt-2 half-width">
+              Enviar
+            </Button>
           </div>
-          <Button color="secondary" type="submit" className="mt-2">
-            Enviar
-          </Button>
+          <div className="flex flex-col items-center mt-2">
+            <video ref={videoRef} width="320" height="240" style={{ display: cameraOn ? 'block' : 'none' }} autoPlay />
+            <canvas ref={canvasRef} width="320" height="240" style={{ display: 'none' }} />
+          </div>
         </Form>
       </div>
     </div>
